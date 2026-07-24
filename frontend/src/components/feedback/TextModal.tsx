@@ -22,10 +22,20 @@ interface TextModalProps {
   tabs?: TextModalTab[];
 }
 
-export default function TextModal({ open, onClose, title, content, fileName = '', json = false, tabs }: TextModalProps) {  const { t } = useTranslation();
+export default function TextModal({ open, onClose, title, content, fileName = '', json = false, tabs }: TextModalProps) {
+  const { t } = useTranslation();
   const [messageApi, messageContextHolder] = message.useMessage();
+  const [activeKey, setActiveKey] = useState('');
+
+  useEffect(() => {
+    if (open && tabs && tabs.length > 0) setActiveKey(tabs[0].key);
+  }, [open, tabs]);
+
+  const activeTab = tabs?.find((tab) => tab.key === activeKey) ?? tabs?.[0];
+  const activeContent = activeTab ? activeTab.content : content;
+
   async function copy() {
-    const ok = await ClipboardManager.copyText(content || '');
+    const ok = await ClipboardManager.copyText(activeContent || '');
     if (ok) {
       messageApi.success(t('copied'));
       onClose();
@@ -34,7 +44,7 @@ export default function TextModal({ open, onClose, title, content, fileName = ''
 
   function download() {
     if (!fileName) return;
-    FileManager.downloadTextFile(content, fileName);
+    FileManager.downloadTextFile(activeContent, fileName);
   }
 
   return (
@@ -54,11 +64,18 @@ export default function TextModal({ open, onClose, title, content, fileName = ''
         </>
       )}
     >
+      {tabs && tabs.length > 0 && (
+        <Tabs
+          activeKey={activeTab?.key}
+          onChange={setActiveKey}
+          items={tabs.map((tab) => ({ key: tab.key, label: tab.label }))}
+        />
+      )}
       {json ? (
-        <JsonEditor value={content} readOnly minHeight="240px" maxHeight="60vh" />
+        <JsonEditor value={activeContent} readOnly minHeight="240px" maxHeight="60vh" />
       ) : (
         <Input.TextArea
-          value={content}
+          value={activeContent}
           readOnly
           autoSize={{ minRows: 10, maxRows: 20 }}
           style={{
