@@ -1,9 +1,16 @@
-import { Button, Input, Modal, message } from 'antd';
+import { useEffect, useState } from 'react';
+import { Button, Input, Modal, Tabs, message } from 'antd';
 import { CopyOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 
 import JsonEditor from '@/components/form/JsonEditor';
 import { ClipboardManager, FileManager } from '@/utils';
+
+export interface TextModalTab {
+  key: string;
+  label: string;
+  content: string;
+}
 
 interface TextModalProps {
   open: boolean;
@@ -12,10 +19,10 @@ interface TextModalProps {
   content: string;
   fileName?: string;
   json?: boolean;
+  tabs?: TextModalTab[];
 }
 
-export default function TextModal({ open, onClose, title, content, fileName = '', json = false }: TextModalProps) {
-  const { t } = useTranslation();
+export default function TextModal({ open, onClose, title, content, fileName = '', json = false, tabs }: TextModalProps) {  const { t } = useTranslation();
   const [messageApi, messageContextHolder] = message.useMessage();
   async function copy() {
     const ok = await ClipboardManager.copyText(content || '');
